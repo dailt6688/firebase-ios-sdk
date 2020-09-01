@@ -51,6 +51,8 @@ const char* CanonicalName(Filter::Operator op) {
       return "<=";
     case Filter::Operator::Equal:
       return "==";
+    case Filter::Operator::NotEqual:
+      return "!=";
     case Filter::Operator::GreaterThanOrEqual:
       return ">=";
     case Filter::Operator::GreaterThan:
@@ -65,6 +67,8 @@ const char* CanonicalName(Filter::Operator op) {
       return "in";
     case Filter::Operator::ArrayContainsAny:
       return "array-contains-any";
+    case Filter::Operator::NotIn:
+      return "not-in";
   }
 
   UNREACHABLE();
@@ -138,7 +142,8 @@ FieldFilter::Rep::Rep(FieldPath field, Operator op, FieldValue value_rhs)
 
 bool FieldFilter::Rep::IsInequality() const {
   return op_ == Operator::LessThan || op_ == Operator::LessThanOrEqual ||
-         op_ == Operator::GreaterThan || op_ == Operator::GreaterThanOrEqual;
+         op_ == Operator::GreaterThan || op_ == Operator::GreaterThanOrEqual
+         || op_ == Operator::NotEqual;
 }
 
 bool FieldFilter::Rep::Matches(const model::Document& doc) const {
@@ -166,6 +171,8 @@ bool FieldFilter::Rep::MatchesComparison(ComparisonResult comparison) const {
              comparison == ComparisonResult::Same;
     case Operator::GreaterThan:
       return comparison == ComparisonResult::Descending;
+    case Operator::NotEqual:
+      return comparison != ComparisonResult::Same;
     default:
       HARD_FAIL("Operator %s unsuitable for comparison", op_);
   }
